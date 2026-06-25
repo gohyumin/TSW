@@ -65,6 +65,13 @@ export default function LoginPage() {
     try {
       const res = await loginStudent(email, password);
       if (res.success) {
+        if (typeof window !== "undefined") {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith("course_")) {
+              localStorage.removeItem(key);
+            }
+          });
+        }
         showToast("✅ Welcome back! Logged in successfully.");
         router.push("/my-learning");
         router.refresh();
@@ -95,6 +102,13 @@ export default function LoginPage() {
         educationBackground
       );
       if (res.success) {
+        if (typeof window !== "undefined") {
+          Object.keys(localStorage).forEach(key => {
+            if (key.startsWith("course_")) {
+              localStorage.removeItem(key);
+            }
+          });
+        }
         showToast("🎉 Account created! Welcome to LearnWise.");
         router.push("/my-learning");
         router.refresh();

@@ -365,6 +365,13 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     await logoutStudent();
+    if (typeof window !== "undefined") {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith("course_")) {
+          localStorage.removeItem(key);
+        }
+      });
+    }
     router.push("/login");
     router.refresh();
   };
