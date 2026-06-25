@@ -301,6 +301,28 @@ export default function ProfilePage() {
     loadData();
   }, [router]);
 
+  useEffect(() => {
+    if (activeTab === "semantic-engine" || activeTab === "achievements") {
+      async function refreshData() {
+        try {
+          const quizRes = await getStudentQuizResults();
+          setDbQuizResults(quizRes);
+          
+          const profile = await getStudentProfileData();
+          if (profile) {
+            setLearningGoal(profile.learningGoal);
+            setSkillLevel(profile.skillLevel);
+            setSelectedCats(profile.interests);
+            setEducationBackground(profile.educationBackground || "Computer Science");
+          }
+        } catch (e) {
+          console.error("Failed to refresh profile tab data:", e);
+        }
+      }
+      refreshData();
+    }
+  }, [activeTab]);
+
   const handleCopyCode = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedText(true);
