@@ -521,18 +521,30 @@ export default function CourseDetailPage() {
       });
 
       const finalScorePct = Math.round((totalCorrect / activeLesson.questions.length) * 100);
-      
-      // Save fail to database
+      setLastQuizScore(finalScorePct);
+
+      const strList: string[] = [];
+      const weakList: string[] = [];
+      Object.entries(skillsPerf).forEach(([concept, score]) => {
+        if (score >= 70) strList.push(concept);
+        else weakList.push(concept);
+      });
+      setStrengths(strList);
+      setWeaknesses(weakList);
+
+      // Save fail to database (DO NOT add to completed lessons, next lesson remains locked)
       if (courseId) {
-        saveQuizResult(courseId, activeLesson.id, finalScorePct, skillsPerf);
-        
-        // Also add to completed lessons in localStorage so profile page knows they attempted it!
-        const newCompleted = [...completedLessons];
-        if (!newCompleted.includes(activeLesson.id)) {
-          newCompleted.push(activeLesson.id);
-          setCompletedLessons(newCompleted);
-          localStorage.setItem(`course_${courseId}_completed`, JSON.stringify(newCompleted));
-        }
+        saveQuizResult(courseId, activeLesson.id, finalScorePct, skillsPerf).then(res => {
+          if (res.success) {
+            console.log("Failed quiz result saved to database:", res);
+            const studentId = student?.id || (res as any).studentId;
+            if (studentId) {
+              getRecommendations(studentId).then(recs => {
+                setRecommendedCourses(recs);
+              });
+            }
+          }
+        });
       }
 
       setQuizState("gameover");
@@ -541,13 +553,6 @@ export default function CourseDetailPage() {
 
     if (currentQuestionIdx + 1 >= activeLesson.questions.length) {
       // Completed last question
-      const newCompleted = [...completedLessons];
-      if (!newCompleted.includes(activeLesson.id)) {
-        newCompleted.push(activeLesson.id);
-        setCompletedLessons(newCompleted);
-        localStorage.setItem(`course_${courseId}_completed`, JSON.stringify(newCompleted));
-      }
-
       // Calculate skills performance
       const finalAnswers = { ...quizAnswers, [currentQuestionIdx]: isAnswerCorrect };
       const conceptStats: Record<string, { correct: number; total: number }> = {};
@@ -600,7 +605,20 @@ export default function CourseDetailPage() {
         });
       }
 
-      setQuizState("victory");
+      // Check if user passed the quiz (score >= 70)
+      if (finalScorePct >= 70) {
+        // Unlock next lesson
+        const newCompleted = [...completedLessons];
+        if (!newCompleted.includes(activeLesson.id)) {
+          newCompleted.push(activeLesson.id);
+          setCompletedLessons(newCompleted);
+          localStorage.setItem(`course_${courseId}_completed`, JSON.stringify(newCompleted));
+        }
+        setQuizState("victory");
+      } else {
+        // If score < 70, next lesson remains locked!
+        setQuizState("gameover");
+      }
     } else {
       setCurrentQuestionIdx((prev) => prev + 1);
       setSelectedOption(null);
