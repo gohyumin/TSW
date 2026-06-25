@@ -363,10 +363,20 @@ export async function getRecommendations(studentId: number): Promise<Recommended
       console.error("OWL reasoning engine failed to execute:", reasoningError);
     }
 
+    // Fetch enrolled course IDs to exclude them from recommendations
+    const enrolledRes = await sql`
+      SELECT course_id FROM student_learning_paths WHERE student_id = ${studentId}
+    `;
+    const enrolledIds = new Set<number>(enrolledRes.map(r => Number(r.course_id)));
+
     let finalRecs = Object.values(recommendedList);
     
-    // Exclude courses that the student reviewed with a low rating (rating < 3)
-    finalRecs = finalRecs.filter(course => !lowRatedCourseIds.has(course.id));
+    // Exclude enrolled courses, completed courses, and low rated courses
+    finalRecs = finalRecs.filter(course => 
+      !enrolledIds.has(course.id) && 
+      !completedCourses.includes(course.id) && 
+      !lowRatedCourseIds.has(course.id)
+    );
 
     if (allowedSubcategories.size > 0) {
       finalRecs = finalRecs.filter(course => {

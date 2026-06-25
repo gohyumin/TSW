@@ -71,22 +71,23 @@ export function runMockInferenceReasoning(userProfile: any, courses: any[], revi
     let teaches: string[] = [];
     let requires: string[] = [];
     
-    if (c.id === 1) {
+    const subName = c.subcategory_name || "";
+    
+    if (subName === "Web Development") {
       teaches = ["HTMLConcept", "CSSLayouts", "ReactComponents"];
-    } else if (c.id === 2) {
+    } else if (subName === "Python") {
       teaches = ["VariableConcept", "LoopConcept", "FunctionConcept"];
       requires = ["Programming"];
-    } else if (c.id === 3) {
+    } else if (subName === "Business Strategy") {
       teaches = ["BusinessOperations", "SWOTAnalysis", "FinancialBudgeting"];
       requires = ["Management"];
-    } else if (c.id === 4) {
+    } else if (subName === "Contract Law") {
       teaches = ["CommercialContracts", "ContractLiability", "IntellectualProperty"];
       requires = ["BusinessOperations"];
-    } else if (c.id === 5) {
+    } else if (subName === "Robotics & Automation") {
       teaches = ["RoboticKinematics", "PIDFeedbackControl", "TrajectoryPlanning"];
       requires = ["VariableConcept", "LoopConcept"];
     } else {
-      const subName = c.subcategory_name || "";
       if (subName) {
         teaches = [subName];
         if (c.category_name === "Programming") {
