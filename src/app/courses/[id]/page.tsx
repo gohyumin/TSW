@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getCourseById } from "@/app/actions/courses";
-import { enrollInCourse, getLearningPathItems, saveQuizResult } from "@/app/actions/learningPaths";
+import { enrollInCourse, getLearningPathItems, saveQuizResult, getCompletedLessonsForCourse } from "@/app/actions/learningPaths";
 import { addToWishlist } from "@/app/actions/wishlist";
 import { 
   ArrowLeft, Clock, BookOpen, Award, Star, CheckCircle, 
@@ -356,11 +356,25 @@ export default function CourseDetailPage() {
           console.error("Failed to load student details:", e);
         }
 
-        // Load progress from localStorage
-        const savedProgress = localStorage.getItem(`course_${courseId}_completed`);
-        if (savedProgress) {
-          setCompletedLessons(JSON.parse(savedProgress));
+        // Load progress from DB & sync with localStorage
+        try {
+          const dbCompleted = await getCompletedLessonsForCourse(courseId);
+          const savedProgress = localStorage.getItem(`course_${courseId}_completed`);
+          let localCompleted: number[] = [];
+          if (savedProgress) {
+            try {
+              localCompleted = JSON.parse(savedProgress);
+            } catch {}
+          }
+          const merged = Array.from(new Set([...dbCompleted, ...localCompleted]));
+          setCompletedLessons(merged);
+          if (merged.length > 0) {
+            localStorage.setItem(`course_${courseId}_completed`, JSON.stringify(merged));
+          }
+        } catch (e) {
+          console.error("Failed to sync progress:", e);
         }
+
         const savedRevision = localStorage.getItem(`course_${courseId}_revision`);
         if (savedRevision) {
           setWrongAnswers(JSON.parse(savedRevision));

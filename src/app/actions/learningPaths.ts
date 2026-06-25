@@ -11,23 +11,47 @@ export async function getLearningPathItems() {
 
   try {
     const res = await sql`
-      SELECT c.id, c.title, c.instructor, c.price, c.gradient_class as gradient, c.emoji
+      SELECT c.id, c.title, c.instructor, c.price, c.gradient_class as gradient, c.emoji,
+             (SELECT COUNT(DISTINCT lesson_id) FROM student_quiz_results WHERE student_id = ${student.id} AND course_id = c.id AND score >= 70) as completed_count
       FROM student_learning_paths r
       JOIN courses c ON r.course_id = c.id
       WHERE r.student_id = ${student.id}
       ORDER BY r.added_at DESC
     `;
 
-    return res.map((item) => ({
-      id: item.id,
-      title: item.title,
-      instructor: item.instructor,
-      price: Number(item.price),
-      gradient: item.gradient,
-      emoji: item.emoji
-    }));
+    return res.map((item) => {
+      const completedCount = Number(item.completed_count || 0);
+      const progress = Math.min(100, Math.round((completedCount / 3) * 100));
+      return {
+        id: item.id,
+        title: item.title,
+        instructor: item.instructor,
+        price: Number(item.price),
+        gradient: item.gradient,
+        emoji: item.emoji,
+        progress: progress,
+        completedCount: completedCount
+      };
+    });
   } catch (error) {
     console.error("Failed to get learning path items:", error);
+    return [];
+  }
+}
+
+export async function getCompletedLessonsForCourse(courseId: number): Promise<number[]> {
+  const student = await getCurrentStudent();
+  if (!student) return [];
+  try {
+    const results = await sql`
+      SELECT lesson_id, score 
+      FROM student_quiz_results 
+      WHERE student_id = ${student.id} AND course_id = ${courseId}
+    `;
+    // A lesson is considered completed if they have a quiz score >= 70
+    return results.filter((r: any) => Number(r.score) >= 70).map((r: any) => Number(r.lesson_id));
+  } catch (error) {
+    console.error("Failed to load completed lessons:", error);
     return [];
   }
 }

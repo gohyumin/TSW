@@ -67,18 +67,16 @@ export default function MyLearningPage() {
   const updateProgressMapping = (items: any[]) => {
     const map: Record<number, number> = {};
     items.forEach((item) => {
+      let percent = typeof item.progress === "number" ? item.progress : 0;
       const saved = localStorage.getItem(`course_${item.id}_completed`);
       if (saved) {
         try {
           const completedArr = JSON.parse(saved);
-          const percent = Math.min(100, Math.round((completedArr.length / 3) * 100));
-          map[item.id] = percent;
-        } catch {
-          map[item.id] = 0;
-        }
-      } else {
-        map[item.id] = 0;
+          const localPercent = Math.min(100, Math.round((completedArr.length / 3) * 100));
+          percent = Math.max(percent, localPercent);
+        } catch {}
       }
+      map[item.id] = percent;
     });
     setProgressMap(map);
   };
