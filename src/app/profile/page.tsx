@@ -110,7 +110,7 @@ export default function ProfilePage() {
   const [subcategoriesByParent, setSubcategoriesByParent] = useState<Record<string, string[]>>({});
   const [allCourses, setAllCourses] = useState<any[]>([]);
 
-  const [semanticInspectorTab, setSemanticInspectorTab] = useState<"overview" | "rdf" | "sparql">("overview");
+  const [semanticInspectorTab, setSemanticInspectorTab] = useState<"overview" | "rdf" | "sparql" | "ontology">("overview");
   const [selectedSparqlQuery, setSelectedSparqlQuery] = useState<"coldStart" | "skillGap" | "reviews">("coldStart");
   const [copiedText, setCopiedText] = useState(false);
 
@@ -955,6 +955,21 @@ export default function ProfilePage() {
               const skillGapSparql = generateSkillGapSparql(user?.id || 1, learningGoal);
               const reviewSparql = generateReviewSemanticSparql(selectedCats[0] || "Python", skillLevel);
 
+              // Generate OWL Ontology text
+              const swrlRulesText = ONTOLOGY.swrlRules.map(
+                (rule) => `Rule ID: ${rule.id}\nRule: ${rule.rule}\nComment: ${rule.comment}\n`
+              ).join("\n");
+              const owlOntologyText = `@prefix owl: <http://www.w3.org/2002/07/owl#> .\n` +
+                `@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n` +
+                `@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n` +
+                `@prefix ex: <${ONTOLOGY.namespace}> .\n\n` +
+                `# LearnWise Core OWL Ontology Classes\n` +
+                ONTOLOGY.classes.map(c => `ex:${c.name} rdf:type owl:Class ;\n    rdfs:comment "${c.comment}" .`).join("\n\n") +
+                `\n\n# LearnWise Object Properties\n` +
+                ONTOLOGY.objectProperties.map(p => `ex:${p.name} rdf:type owl:ObjectProperty ;\n    rdfs:domain ex:${p.domain} ;\n    rdfs:range ex:${p.range} ;\n    rdfs:comment "${p.comment}" .`).join("\n\n") +
+                `\n\n# SWRL Logical Inference Rules\n` +
+                swrlRulesText;
+
               return (
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-sm space-y-6 animate-fade-in">
                   <div>
@@ -972,7 +987,8 @@ export default function ProfilePage() {
                     {[
                       { key: "overview", label: "Deduction Explanation", icon: HelpCircle },
                       { key: "rdf", label: "RDF Triples (Turtle)", icon: Database },
-                      { key: "sparql", label: "SPARQL Query Inspector", icon: Search }
+                      { key: "sparql", label: "SPARQL Query Inspector", icon: Search },
+                      { key: "ontology", label: "OWL Ontology Schema", icon: BookOpen }
                     ].map(tab => {
                       const Icon = tab.icon;
                       const active = semanticInspectorTab === tab.key;
@@ -1140,6 +1156,28 @@ export default function ProfilePage() {
                         {selectedSparqlQuery === "coldStart" && coldStartSparql}
                         {selectedSparqlQuery === "skillGap" && skillGapSparql}
                         {selectedSparqlQuery === "reviews" && reviewSparql}
+                      </pre>
+                    </div>
+                  )}
+
+                  {/* SUB-TAB 4: OWL ONTOLOGY SCHEMA */}
+                  {semanticInspectorTab === "ontology" && (
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h4 className="text-xs font-extrabold text-slate-400 dark:text-slate-550 uppercase tracking-widest">OWL Ontology Schema & SWRL Rules</h4>
+                        <button
+                          onClick={() => handleCopyCode(owlOntologyText)}
+                          className="flex items-center gap-1 text-[10px] font-bold bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer"
+                        >
+                          <Copy className="h-3 w-3" />
+                          <span>{copiedText ? "Copied!" : "Copy OWL Ontology"}</span>
+                        </button>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        This schema defines the vocabulary, concept hierarchies, properties, and SWRL rules used by the reasoner.
+                      </p>
+                      <pre className="bg-slate-950 dark:bg-black text-indigo-400 dark:text-emerald-400 p-4 rounded-2xl text-[11px] font-mono overflow-x-auto leading-relaxed border border-slate-800 max-h-[400px]">
+                        {owlOntologyText}
                       </pre>
                     </div>
                   )}
