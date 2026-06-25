@@ -17,41 +17,41 @@ export function parseTurtleToTriples(turtle: string): RDFTriple[] {
   const lines = turtle.split("\n");
   let currentSubject = "";
 
-  lines.forEach(line => {
-    line = line.trim();
+  lines.forEach(rawLine => {
+    const line = rawLine.trim();
     // Skip empty lines, prefix declarations, and comments
     if (!line || line.startsWith("@prefix") || line.startsWith("#")) {
       return;
     }
 
-    // Match new subject lines. Example:
-    // ex:User1 rdf:type ex:Learner ;
-    // ex:Goal1 ex:name "Data Scientist" .
-    const subjectMatch = line.match(/^(ex:[a-zA-Z0-9_]+)\s+([a-zA-Z0-9_:]+)\s+(.+)$/);
-    if (subjectMatch) {
-      currentSubject = subjectMatch[1];
-      const predicate = subjectMatch[2];
-      let object = subjectMatch[3].trim();
-      
-      // Remove ending Turtle delimiters (; or . or ,)
-      if (object.endsWith(";") || object.endsWith(".") || object.endsWith(",")) {
-        object = object.slice(0, -1).trim();
-      }
-      triples.push({ s: currentSubject, p: predicate, o: object });
-      return;
-    }
+    const isContinuation = rawLine.startsWith(" ") || rawLine.startsWith("\t");
 
-    // Match continuation lines (predicates sharing the active subject). Example:
-    //     ex:hasGoal ex:DataScientist ;
-    const continuationMatch = line.match(/^([a-zA-Z0-9_:]+)\s+(.+)$/);
-    if (continuationMatch && currentSubject) {
-      const predicate = continuationMatch[1];
-      let object = continuationMatch[2].trim();
-      
-      if (object.endsWith(";") || object.endsWith(".") || object.endsWith(",")) {
-        object = object.slice(0, -1).trim();
+    if (!isContinuation) {
+      // Match new subject lines. Example: ex:User1 rdf:type ex:Learner ;
+      const subjectMatch = line.match(/^([a-zA-Z0-9_:]+)\s+([a-zA-Z0-9_:]+)\s+(.+)$/);
+      if (subjectMatch) {
+        currentSubject = subjectMatch[1];
+        const predicate = subjectMatch[2];
+        let object = subjectMatch[3].trim();
+        
+        // Remove ending Turtle delimiters (; or . or ,)
+        if (object.endsWith(";") || object.endsWith(".") || object.endsWith(",")) {
+          object = object.slice(0, -1).trim();
+        }
+        triples.push({ s: currentSubject, p: predicate, o: object });
       }
-      triples.push({ s: currentSubject, p: predicate, o: object });
+    } else if (currentSubject) {
+      // Match continuation lines sharing the active subject. Example: ex:hasGoal ex:DataScientist ;
+      const continuationMatch = line.match(/^([a-zA-Z0-9_:]+)\s+(.+)$/);
+      if (continuationMatch) {
+        const predicate = continuationMatch[1];
+        let object = continuationMatch[2].trim();
+        
+        if (object.endsWith(";") || object.endsWith(".") || object.endsWith(",")) {
+          object = object.slice(0, -1).trim();
+        }
+        triples.push({ s: currentSubject, p: predicate, o: object });
+      }
     }
   });
 
