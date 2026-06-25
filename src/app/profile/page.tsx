@@ -48,7 +48,6 @@ import { mapStudentToRdf } from "@/lib/semantic/rdfMapper";
 import { runMockInferenceReasoning } from "@/lib/semantic/inferenceService";
 import { generateColdStartSparql, generateSkillGapSparql, generateReviewSemanticSparql } from "@/lib/semantic/sparqlService";
 import { ONTOLOGY } from "@/lib/semantic/ontology";
-import { mapProfileToXml } from "@/lib/semantic/xmlMapper";
 
 const initialCategories = [
   "Programming",
@@ -111,8 +110,7 @@ export default function ProfilePage() {
   const [subcategoriesByParent, setSubcategoriesByParent] = useState<Record<string, string[]>>({});
   const [allCourses, setAllCourses] = useState<any[]>([]);
 
-  // Semantic Web Inspector state
-  const [semanticInspectorTab, setSemanticInspectorTab] = useState<"overview" | "rdf" | "sparql" | "xml">("overview");
+  const [semanticInspectorTab, setSemanticInspectorTab] = useState<"overview" | "rdf" | "sparql">("overview");
   const [selectedSparqlQuery, setSelectedSparqlQuery] = useState<"coldStart" | "skillGap" | "reviews">("coldStart");
   const [copiedText, setCopiedText] = useState(false);
 
@@ -925,16 +923,6 @@ export default function ProfilePage() {
               const studentSkills = skillLevel === "Beginner" ? [{ name: "Python", level: "Beginner" }] : [];
               const completedCourseIds = enrolledCourses.filter(c => progressMap[c.id] === 100).map(c => c.id);
 
-              const profileXml = mapProfileToXml({
-                studentId: user?.id || 1,
-                name: user?.name || "Student",
-                email: user?.email || "",
-                learningGoal,
-                skillLevel,
-                interests: selectedCats,
-                skills: studentSkills
-              });
-
               const studentRdf = mapStudentToRdf({
                 id: user?.id || 1,
                 learningGoal,
@@ -974,7 +962,7 @@ export default function ProfilePage() {
                       Semantic Web Recommendation Inspector
                     </h2>
                     <p className="text-xs text-slate-550 dark:text-slate-400 mt-1">
-                      See how your profile interests and learning milestones are translated into Semantic standards (XML, RDF/RDFS) and resolved through OWL/SWRL rules and SPARQL queries.
+                      See how your profile interests and learning milestones are translated into Semantic standards (RDF/RDFS) and resolved through OWL/SWRL rules and SPARQL queries.
                     </p>
                   </div>
 
@@ -983,8 +971,7 @@ export default function ProfilePage() {
                     {[
                       { key: "overview", label: "Deduction Explanation", icon: HelpCircle },
                       { key: "rdf", label: "RDF Triples (Turtle)", icon: Database },
-                      { key: "sparql", label: "SPARQL Query Inspector", icon: Search },
-                      { key: "xml", label: "XML Serialization", icon: FileCode }
+                      { key: "sparql", label: "SPARQL Query Inspector", icon: Search }
                     ].map(tab => {
                       const Icon = tab.icon;
                       const active = semanticInspectorTab === tab.key;
@@ -1156,27 +1143,7 @@ export default function ProfilePage() {
                     </div>
                   )}
 
-                  {/* SUB-TAB 4: XML PROFILE */}
-                  {semanticInspectorTab === "xml" && (
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-center">
-                        <h4 className="text-xs font-extrabold text-slate-450 dark:text-slate-500 uppercase tracking-widest">XML Student Profile Serialization (Category 1)</h4>
-                        <button
-                          onClick={() => handleCopyCode(profileXml)}
-                          className="flex items-center gap-1 text-[10px] font-bold bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer"
-                        >
-                          <Copy className="h-3 w-3" />
-                          <span>{copiedText ? "Copied!" : "Copy XML"}</span>
-                        </button>
-                      </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Shows the XML layout utilized for cold start and student profiles in LearnWise.
-                      </p>
-                      <pre className="bg-slate-950 dark:bg-black text-indigo-400 dark:text-emerald-400 p-4 rounded-2xl text-[11px] font-mono overflow-x-auto leading-relaxed border border-slate-800">
-                        {profileXml}
-                      </pre>
-                    </div>
-                  )}
+                  {/* Sub-tab rendering wraps here */}
                 </div>
               );
             })()}
