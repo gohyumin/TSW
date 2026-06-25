@@ -924,6 +924,21 @@ export default function ProfilePage() {
               const studentSkills = skillLevel === "Beginner" ? [{ name: "Python", level: "Beginner" }] : [];
               const completedCourseIds = enrolledCourses.filter(c => progressMap[c.id] === 100).map(c => c.id);
 
+              let inferredTriplesText = "";
+              if (quizResults && quizResults.length > 0) {
+                inferredTriplesText += `# Inferred Semantic Relations (SWRL Rules Engine Assertions)\n`;
+                quizResults.forEach(qr => {
+                  Object.keys(qr.skillsPerformance).forEach(concept => {
+                    const conceptUri = `ex:${concept.replace(/\s+/g, "").replace(/[^a-zA-Z0-9]/g, "")}`;
+                    if (qr.score < 70) {
+                      inferredTriplesText += `ex:Student${user?.id || 5} ex:hasWeakness ${conceptUri} .\n`;
+                    } else {
+                      inferredTriplesText += `ex:Student${user?.id || 5} ex:mastered ${conceptUri} .\n`;
+                    }
+                  });
+                });
+              }
+
               const studentRdf = mapStudentToRdf({
                 id: user?.id || 1,
                 learningGoal,
@@ -932,7 +947,7 @@ export default function ProfilePage() {
                 skills: studentSkills,
                 completedCourses: completedCourseIds,
                 quizResults: quizResults
-              });
+              }) + "\n" + inferredTriplesText;
 
               // Run reasoner dynamically
               const reasoningRecs = runMockInferenceReasoning({
