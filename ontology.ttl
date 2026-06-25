@@ -1,0 +1,202 @@
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix swrl: <http://www.w3.org/2003/11/swrl#> .
+@prefix swrlb: <http://www.w3.org/2003/11/swrlb#> .
+@prefix ex: <http://example.org/learnwise#> .
+
+<http://example.org/learnwise> rdf:type owl:Ontology ;
+    rdfs:comment "LearnWise Adaptive Learning Recommender Ontology Schema." ;
+    owl:versionInfo "1.0.0" .
+
+# =================================================================
+# Classes
+# =================================================================
+
+ex:Learner rdf:type owl:Class ;
+    rdfs:comment "Represents student users in the LearnWise platform." .
+
+ex:Course rdf:type owl:Class ;
+    rdfs:comment "Represents educational course elements." .
+
+ex:Skill rdf:type owl:Class ;
+    rdfs:comment "Represents technical/professional skills." .
+
+ex:QuizQuestion rdf:type owl:Class ;
+    rdfs:comment "Represents individual quiz questions in lessons." .
+
+ex:QuizResult rdf:type owl:Class ;
+    rdfs:comment "Represents outcomes of a student taking a lesson quiz." .
+
+ex:CareerGoal rdf:type owl:Class ;
+    rdfs:comment "Represents user career paths (e.g. Software Developer)." .
+
+# Skill Subclass Taxonomies
+ex:ProgrammingSkill rdf:type owl:Class ;
+    rdfs:subClassOf ex:Skill ;
+    rdfs:comment "Programming category skill." .
+
+ex:PythonSkill rdf:type owl:Class ;
+    rdfs:subClassOf ex:ProgrammingSkill ;
+    rdfs:comment "Python programming language skill." .
+
+ex:DatabaseSkill rdf:type owl:Class ;
+    rdfs:subClassOf ex:ProgrammingSkill ;
+    rdfs:comment "Database design and querying skill." .
+
+ex:MachineLearningSkill rdf:type owl:Class ;
+    rdfs:subClassOf ex:ProgrammingSkill ;
+    rdfs:comment "Machine learning algorithms skill." .
+
+ex:WebDevelopmentSkill rdf:type owl:Class ;
+    rdfs:subClassOf ex:ProgrammingSkill ;
+    rdfs:comment "Frontend and backend web development skill." .
+
+ex:BusinessSkill rdf:type owl:Class ;
+    rdfs:subClassOf ex:Skill ;
+    rdfs:comment "Business category skill." .
+
+ex:BusinessStrategySkill rdf:type owl:Class ;
+    rdfs:subClassOf ex:BusinessSkill ;
+    rdfs:comment "Business strategy and management skill." .
+
+ex:LawSkill rdf:type owl:Class ;
+    rdfs:subClassOf ex:Skill ;
+    rdfs:comment "Legal category skill." .
+
+ex:ContractLawSkill rdf:type owl:Class ;
+    rdfs:subClassOf ex:LawSkill ;
+    rdfs:comment "Contract law principles skill." .
+
+ex:EngineeringSkill rdf:type owl:Class ;
+    rdfs:subClassOf ex:Skill ;
+    rdfs:comment "Engineering category skill." .
+
+ex:RoboticsAutomationSkill rdf:type owl:Class ;
+    rdfs:subClassOf ex:EngineeringSkill ;
+    rdfs:comment "Robotics and industrial automation skill." .
+
+# Career Goal Subclass Taxonomies
+ex:AIEngineer rdf:type owl:Class ;
+    rdfs:subClassOf ex:CareerGoal .
+
+ex:SoftwareDeveloper rdf:type owl:Class ;
+    rdfs:subClassOf ex:CareerGoal .
+
+ex:BusinessManager rdf:type owl:Class ;
+    rdfs:subClassOf ex:CareerGoal .
+
+ex:LegalCounsel rdf:type owl:Class ;
+    rdfs:subClassOf ex:CareerGoal .
+
+ex:RoboticsEngineer rdf:type owl:Class ;
+    rdfs:subClassOf ex:CareerGoal .
+
+# =================================================================
+# Object Properties
+# =================================================================
+
+ex:hasGoal rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Learner ;
+    rdfs:range ex:CareerGoal ;
+    rdfs:comment "Associates user with their target career goals." .
+
+ex:hasSkill rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Learner ;
+    rdfs:range ex:Skill ;
+    rdfs:comment "Associates user with their existing skills." .
+
+ex:requiresSkill rdf:type owl:ObjectProperty ;
+    rdfs:domain [
+        rdf:type owl:Class ;
+        owl:unionOf (ex:CareerGoal ex:Course)
+    ] ;
+    rdfs:range ex:Skill ;
+    rdfs:comment "Associates career goals or courses with required/prerequisite skills." .
+
+ex:teachesSkill rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Course ;
+    rdfs:range ex:Skill ;
+    rdfs:comment "Associates course with skills taught." .
+
+ex:hasPrerequisite rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Skill ;
+    rdfs:range ex:Skill ;
+    rdfs:comment "Skill prerequisite ordering relationship." .
+
+ex:completedCourse rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Learner ;
+    rdfs:range ex:Course ;
+    rdfs:comment "Tracks completed courses." .
+
+ex:notCompleted rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Learner ;
+    rdfs:range ex:Course ;
+    rdfs:comment "Represents that a learner has not completed a course." .
+
+ex:attemptedQuiz rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Learner ;
+    rdfs:range ex:QuizResult ;
+    rdfs:comment "Binds user to quiz results." .
+
+ex:hasQuizResult rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Learner ;
+    rdfs:range ex:QuizResult ;
+    rdfs:comment "Binds user to quiz results (alternative predicate)." .
+
+ex:testsSkill rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:QuizResult ;
+    rdfs:range ex:Skill ;
+    rdfs:comment "Maps quiz result to the skill concept it tests." .
+
+ex:testsConcept rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:QuizQuestion ;
+    rdfs:range ex:Skill ;
+    rdfs:comment "Maps quiz question to the skill concept it tests." .
+
+ex:aboutCourse rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:QuizResult ;
+    rdfs:range ex:Course ;
+    rdfs:comment "Binds quiz result to course." .
+
+ex:hasQuestion rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Course ;
+    rdfs:range ex:QuizQuestion ;
+    rdfs:comment "Connects course to its quiz questions." .
+
+ex:mastered rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Learner ;
+    rdfs:range ex:Skill ;
+    rdfs:comment "Inferred or mapped concept showing high mastery." .
+
+ex:hasWeakness rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Learner ;
+    rdfs:range ex:Skill ;
+    rdfs:comment "Inferred concept showing low test performance." .
+
+ex:recommendedFor rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Course ;
+    rdfs:range ex:Learner ;
+    rdfs:comment "Inferred recommendation." .
+
+ex:suitableFor rdf:type owl:ObjectProperty ;
+    rdfs:domain ex:Course ;
+    rdfs:range ex:Learner ;
+    rdfs:comment "Inferred suitability." .
+
+# =================================================================
+# SWRL Logical Inference Rules Definitions (Represented as metadata comments)
+# =================================================================
+
+# Rule 1: Weakness Detection
+# Rule: Learner(?l) ^ attemptedQuiz(?l, ?qr) ^ QuizResult(?qr) ^ score(?qr, ?score) ^ testsSkill(?qr, ?s) ^ swrlb:lessThan(?score, 70) -> hasWeakness(?l, ?s)
+# Comment: If a learner scores less than 70% on a quiz testing a skill, infer that they have a weakness in that skill.
+
+# Rule 2: Weakness Remediation Course Matching
+# Rule: Learner(?l) ^ hasWeakness(?l, ?s) ^ Course(?c) ^ teachesSkill(?c, ?s) -> recommendedFor(?c, ?l)
+# Comment: If a learner has a weakness in a skill, recommend courses that teach that skill to reinforce it.
+
+# Rule 3: Prerequisite Path Suitability
+# Rule: Learner(?l) ^ mastered(?l, ?s) ^ Course(?c) ^ requiresSkill(?c, ?s) ^ notCompleted(?l, ?c) -> suitableFor(?c, ?l)
+# Comment: If a learner has mastered the prerequisite skills required by a course and has not completed it, infer that the course is suitable for them.
