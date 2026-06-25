@@ -1796,36 +1796,7 @@ export default function CourseDetailPage() {
             </div>
           </div>
 
-          {/* Recommendations List */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Semantic Course Recommendations
-            </h3>
-            {recommendedCourses.length > 0 ? (
-              <div className="space-y-3.5">
-                {recommendedCourses.map((rec) => (
-                  <div key={rec.id} className="p-5 border border-indigo-150 dark:border-indigo-950/45 rounded-2xl bg-indigo-50/15 dark:bg-indigo-950/5 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-extrabold text-sm text-indigo-700 dark:text-indigo-400 flex items-center gap-1.5">
-                        <Sparkles className="h-4 w-4 shrink-0" />
-                        {rec.courseTitle}
-                      </h4>
-                      <span className="text-[9px] font-bold uppercase tracking-widest bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full shrink-0">
-                        Inferred
-                      </span>
-                    </div>
-                    {rec.reasons.map((reason: string, idx: number) => (
-                      <p key={idx} className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed pl-5 relative before:content-['•'] before:absolute before:left-1 before:text-indigo-500 font-medium">
-                        {reason.replace(/\*\*/g, "")}
-                      </p>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-slate-400 italic">No recommendations mapped for your profile at this time.</p>
-            )}
-          </div>
+
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">

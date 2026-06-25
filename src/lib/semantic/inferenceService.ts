@@ -283,6 +283,7 @@ export function runMockInferenceReasoning(userProfile: any, courses: any[], revi
   // 7. RUN SPARQL QUERIES TO EXTRACT RECOMMENDATIONS WITH EXPLANATIONS
   const inferredRecommendations: any[] = [];
   const combinedRecs: Record<number, { courseId: number; courseTitle: string; reasons: string[] }> = {};
+  const courseWeaknesses: Record<number, string[]> = {};
 
   const addReason = (courseId: number, title: string, reason: string) => {
     if (!combinedRecs[courseId]) {
@@ -307,6 +308,12 @@ export function runMockInferenceReasoning(userProfile: any, courses: any[], revi
     if (course) {
       const skillName = res.skill.replace("ex:", "");
       addReason(course.id, course.title, `Recommended because your quiz performance indicates a weakness in **${skillName}** concepts, and this course helps strengthen the required skill.`);
+      if (!courseWeaknesses[course.id]) {
+        courseWeaknesses[course.id] = [];
+      }
+      if (!courseWeaknesses[course.id].includes(skillName)) {
+        courseWeaknesses[course.id].push(skillName);
+      }
     }
   });
 
@@ -368,11 +375,14 @@ export function runMockInferenceReasoning(userProfile: any, courses: any[], revi
 
   // Convert combinedRecs to return array
   Object.values(combinedRecs).forEach(rec => {
+    const isWeakness = !!courseWeaknesses[rec.courseId];
     inferredRecommendations.push({
       courseId: rec.courseId,
       courseTitle: rec.courseTitle,
       reasons: rec.reasons,
-      ruleTriggered: "Semantic Pathway Rules"
+      ruleTriggered: "Semantic Pathway Rules",
+      isWeakness: isWeakness,
+      weaknessSkills: courseWeaknesses[rec.courseId] || []
     });
   });
 

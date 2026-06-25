@@ -468,9 +468,19 @@ export default function MyLearningPage() {
               {filteredRecs.map((course) => (
                 <div
                   key={course.id}
-                  className="min-w-[300px] w-[300px] md:min-w-[340px] md:w-[340px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group snap-start"
+                  className={cn(
+                    "min-w-[300px] w-[300px] md:min-w-[340px] md:w-[340px] rounded-2xl overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col group snap-start border",
+                    course.isWeakness
+                      ? "bg-rose-50/5 dark:bg-rose-950/5 border-rose-300/40 dark:border-rose-900/30 shadow-md shadow-rose-500/5 ring-1 ring-rose-500/10 border-2"
+                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                  )}
                 >
                   <div className={cn("h-36 bg-gradient-to-br flex items-center justify-center relative", course.gradient_class)}>
+                    {course.isWeakness && (
+                      <div className="absolute top-2.5 right-2.5 bg-rose-600 text-white text-[9px] font-extrabold px-2.5 py-1 rounded-md shadow-md uppercase tracking-wider z-15 flex items-center gap-1.5 animate-pulse">
+                        <span>💡</span> Help your weakness: {course.weaknessSkills?.join(", ") || "Web"}
+                      </div>
+                    )}
                     <span className="text-4xl drop-shadow-md group-hover:scale-110 transition-transform duration-300">
                       {course.emoji}
                     </span>
@@ -496,9 +506,14 @@ export default function MyLearningPage() {
                         {course.reasons.map((reason: string, index: number) => (
                           <div 
                             key={index} 
-                            className="text-[9px] text-indigo-750 dark:text-indigo-400 font-semibold bg-indigo-50/50 dark:bg-indigo-950/40 px-2.5 py-1.5 rounded-lg border border-indigo-100/30 dark:border-indigo-950 leading-normal"
+                            className={cn(
+                              "text-[9px] font-semibold px-2.5 py-1.5 rounded-lg border leading-normal",
+                              course.isWeakness
+                                ? "text-rose-800 dark:text-rose-450 bg-rose-50/60 dark:bg-rose-950/45 border-rose-100/40 dark:border-rose-950"
+                                : "text-indigo-750 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/40 border-indigo-100/30 dark:border-indigo-950"
+                            )}
                           >
-                            💡 {reason}
+                            {course.isWeakness ? "⚠️" : "💡"} {reason}
                           </div>
                         ))}
                       </div>
@@ -509,7 +524,12 @@ export default function MyLearningPage() {
                       <Button
                         size="sm"
                         onClick={() => handleOpenCourseModal(course.id)}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold hover:scale-102 active:scale-98 transition-all duration-200 cursor-pointer"
+                        className={cn(
+                          "text-white text-xs font-semibold hover:scale-102 active:scale-98 transition-all duration-200 cursor-pointer",
+                          course.isWeakness
+                            ? "bg-rose-600 hover:bg-rose-700"
+                            : "bg-indigo-600 hover:bg-indigo-700"
+                        )}
                       >
                         View Details
                       </Button>

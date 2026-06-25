@@ -6,6 +6,8 @@ import { runMockInferenceReasoning } from "@/lib/semantic/inferenceService";
 
 export interface RecommendedCourse extends CourseData {
   reasons: string[];
+  isWeakness?: boolean;
+  weaknessSkills?: string[];
 }
 
 /**
@@ -347,7 +349,13 @@ export async function getRecommendations(studentId: number): Promise<Recommended
         const matchedRow = allCourses.find((c) => c.id === inf.courseId);
         if (matchedRow) {
           inf.reasons.forEach((r: string) => {
-            addOrUpdateRecommendation(recommendedList, matchedRow, r);
+            addOrUpdateRecommendation(
+              recommendedList,
+              matchedRow,
+              r,
+              inf.isWeakness,
+              inf.weaknessSkills
+            );
           });
         }
       });
@@ -456,12 +464,20 @@ export async function getRecommendations(studentId: number): Promise<Recommended
 function addOrUpdateRecommendation(
   list: Record<number, RecommendedCourse>,
   row: any,
-  reason: string
+  reason: string,
+  isWeakness?: boolean,
+  weaknessSkills?: string[]
 ) {
   const ratingVal = Number(row.rating) ? Math.round(Number(row.rating) * 10) / 10 : 0;
   if (list[row.id]) {
     if (!list[row.id].reasons.includes(reason)) {
       list[row.id].reasons.push(reason);
+    }
+    if (isWeakness) {
+      list[row.id].isWeakness = true;
+      const existing = list[row.id].weaknessSkills || [];
+      const combined = Array.from(new Set([...existing, ...(weaknessSkills || [])]));
+      list[row.id].weaknessSkills = combined;
     }
   } else {
     list[row.id] = {
@@ -481,7 +497,9 @@ function addOrUpdateRecommendation(
       emoji: row.emoji,
       is_bestseller: row.is_bestseller,
       rating: ratingVal,
-      reasons: [reason]
+      reasons: [reason],
+      isWeakness: isWeakness || false,
+      weaknessSkills: weaknessSkills || []
     };
   }
 }
