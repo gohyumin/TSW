@@ -909,14 +909,6 @@ export default function ProfilePage() {
                     } catch(e) {}
                   }
                 });
-                if (results.length === 0) {
-                  results.push({
-                    courseId: 2,
-                    lessonId: 1,
-                    score: 55,
-                    skillsPerformance: { "Python": 55 }
-                  });
-                }
                 return results;
               })();
 
