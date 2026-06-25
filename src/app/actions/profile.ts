@@ -162,3 +162,27 @@ export async function getSemanticStudentProfileCode(): Promise<{ xml: string; rd
     return null;
   }
 }
+
+export async function getStudentQuizResults(): Promise<any[]> {
+  const student = await getCurrentStudent();
+  if (!student) return [];
+
+  try {
+    const results = await sql`
+      SELECT course_id, lesson_id, score, skills_performance
+      FROM student_quiz_results
+      WHERE student_id = ${student.id}
+    `;
+
+    return results.map(r => ({
+      courseId: Number(r.course_id),
+      lessonId: Number(r.lesson_id),
+      score: Number(r.score),
+      skillsPerformance: typeof r.skills_performance === "string" ? JSON.parse(r.skills_performance) : r.skills_performance
+    }));
+  } catch (error) {
+    console.error("Failed to get student quiz results:", error);
+    return [];
+  }
+}
+

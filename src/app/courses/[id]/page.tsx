@@ -499,6 +499,42 @@ export default function CourseDetailPage() {
     if (!activeLesson) return;
 
     if (hearts <= 0) {
+      // Calculate performance up to this point
+      const conceptStats: Record<string, { correct: number; total: number }> = {};
+      activeLesson.questions.forEach((q, idx) => {
+        const isCorrect = !!quizAnswers[idx];
+        const concept = q.concept || "GeneralConcept";
+        if (!conceptStats[concept]) {
+          conceptStats[concept] = { correct: 0, total: 0 };
+        }
+        conceptStats[concept].total += 1;
+        if (isCorrect) {
+          conceptStats[concept].correct += 1;
+        }
+      });
+
+      const skillsPerf: Record<string, number> = {};
+      let totalCorrect = 0;
+      Object.entries(conceptStats).forEach(([concept, stats]) => {
+        skillsPerf[concept] = Math.round((stats.correct / stats.total) * 100);
+        totalCorrect += stats.correct;
+      });
+
+      const finalScorePct = Math.round((totalCorrect / activeLesson.questions.length) * 100);
+      
+      // Save fail to database
+      if (courseId) {
+        saveQuizResult(courseId, activeLesson.id, finalScorePct, skillsPerf);
+        
+        // Also add to completed lessons in localStorage so profile page knows they attempted it!
+        const newCompleted = [...completedLessons];
+        if (!newCompleted.includes(activeLesson.id)) {
+          newCompleted.push(activeLesson.id);
+          setCompletedLessons(newCompleted);
+          localStorage.setItem(`course_${courseId}_completed`, JSON.stringify(newCompleted));
+        }
+      }
+
       setQuizState("gameover");
       return;
     }

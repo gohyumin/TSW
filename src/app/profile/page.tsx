@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { getCurrentStudent, logoutStudent } from "@/app/actions/auth";
-import { getStudentProfileData, updateStudentProfileData } from "@/app/actions/profile";
+import { getStudentProfileData, updateStudentProfileData, getStudentQuizResults } from "@/app/actions/profile";
 import { getCourseById, getCourses } from "@/app/actions/courses";
 import { getResourcesForCourse } from "@/lib/courseResources";
 import { enrollInCourse, getLearningPathItems, removeFromLearningPath } from "@/app/actions/learningPaths";
@@ -128,6 +128,7 @@ export default function ProfilePage() {
   // Enrolled courses state (My Learning Tab)
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([]);
   const [progressMap, setProgressMap] = useState<Record<number, number>>({});
+  const [dbQuizResults, setDbQuizResults] = useState<any[]>([]);
 
   // Course Details Modal state
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
@@ -281,6 +282,9 @@ export default function ProfilePage() {
         setSelectedCats(profile.interests);
         setEducationBackground(profile.educationBackground || "Computer Science");
       }
+
+      const quizRes = await getStudentQuizResults();
+      setDbQuizResults(quizRes);
 
       const enrolled = await getLearningPathItems();
       setEnrolledCourses(enrolled);
@@ -886,31 +890,7 @@ export default function ProfilePage() {
 
             {/* TAB 5: SEMANTIC REASONER INSPECTOR */}
             {activeTab === "semantic-engine" && (() => {
-              const quizResults = (() => {
-                const results: any[] = [];
-                if (typeof window === "undefined") return results;
-                [1, 2, 3, 4, 5].forEach(courseId => {
-                  const completedStr = localStorage.getItem(`course_${courseId}_completed`);
-                  if (completedStr) {
-                    try {
-                      const lessons = JSON.parse(completedStr);
-                      lessons.forEach((lId: number) => {
-                        const score = lId % 2 === 1 ? 85 : 55;
-                        const concept = courseId === 2 
-                          ? (lId === 1 ? "Programming" : "Python") 
-                          : (courseId === 1 ? "WebDevelopment" : "Management");
-                        results.push({
-                          courseId,
-                          lessonId: lId,
-                          score,
-                          skillsPerformance: { [concept]: score }
-                        });
-                      });
-                    } catch(e) {}
-                  }
-                });
-                return results;
-              })();
+              const quizResults = dbQuizResults;
 
               const studentSkills = skillLevel === "Beginner" ? [{ name: "Python", level: "Beginner" }] : [];
               const completedCourseIds = enrolledCourses.filter(c => progressMap[c.id] === 100).map(c => c.id);
